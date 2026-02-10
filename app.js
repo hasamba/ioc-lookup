@@ -77,24 +77,30 @@
   }
 
   async function queryIPAPI(ip) {
-    const res = await fetch(`http://ip-api.com/json/${ip}?fields=status,message,country,countryCode,regionName,city,zip,lat,lon,isp,org,as,proxy,hosting`);
-    if (!res.ok) return { source: 'IP Geolocation', error: `HTTP ${res.status}` };
-    const d = await res.json();
-    if (d.status === 'fail') return { source: 'IP Geolocation', error: d.message };
-    const flag = d.countryCode ? String.fromCodePoint(...[...d.countryCode.toUpperCase()].map(c => 0x1F1E6 + c.charCodeAt(0) - 65)) : '';
-    return {
-      source: 'IP Geolocation',
-      status: 'info',
-      data: {
-        'Location': `${flag} ${d.city || ''}, ${d.regionName || ''}, ${d.country || ''}`,
-        'ISP': d.isp || 'Unknown',
-        'Org': d.org || 'Unknown',
-        'AS': d.as || 'Unknown',
-        'Proxy/VPN': d.proxy ? '⚠️ Yes' : 'No',
-        'Hosting': d.hosting ? 'Yes (datacenter)' : 'No',
-      },
-      score: d.proxy ? 40 : (d.hosting ? 15 : 0),
-    };
+    try {
+      // Using ipapi.co - HTTPS, free tier 1000 req/day, no key required
+      const res = await fetch(`https://ipapi.co/${ip}/json/`, {
+        headers: { 'User-Agent': 'IoC-Quick-Lookup/1.0' },
+        mode: 'cors',
+      });
+      if (!res.ok) return { source: 'IP Geolocation', error: `HTTP ${res.status}` };
+      const d = await res.json();
+      if (d.error) return { source: 'IP Geolocation', error: d.reason || d.error };
+      const flag = d.country_code ? String.fromCodePoint(...[...d.country_code.toUpperCase()].map(c => 0x1F1E6 + c.charCodeAt(0) - 65)) : '';
+      return {
+        source: 'IP Geolocation',
+        status: 'info',
+        data: {
+          'Location': `${flag} ${d.city || ''}, ${d.region || ''}, ${d.country_name || ''}`,
+          'ISP': d.org || 'Unknown',
+          'ASN': d.asn || 'Unknown',
+          'Timezone': d.timezone || 'Unknown',
+        },
+        score: 0,
+      };
+    } catch (err) {
+      return { source: 'IP Geolocation', error: err.message.includes('Failed to fetch') ? 'Network error' : err.message };
+    }
   }
 
   async function queryAbuseIPDB(ip) {
@@ -179,83 +185,21 @@
   }
 
   async function queryThreatFox(ioc, type) {
-    const body = { query: 'search_ioc', search_term: ioc };
-    try {
-      const res = await fetch('https://threatfox-api.abuse.ch/api/v1/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-        mode: 'cors',
-      });
-      if (!res.ok) return { source: 'ThreatFox', error: `HTTP ${res.status}` };
-      const d = await res.json();
-      if (d.query_status !== 'ok' || !d.data?.length) {
-        return { source: 'ThreatFox', status: 'clean', data: { 'Result': 'Not found in ThreatFox database' }, score: 0, link: 'https://threatfox.abuse.ch/' };
-      }
-      const entry = d.data[0];
-      return {
-        source: 'ThreatFox',
-        status: 'malicious',
-        data: {
-          'Threat Type': entry.threat_type || 'Unknown',
-          'Malware': entry.malware_printable || 'Unknown',
-          'Confidence': `${entry.confidence_level || 0}%`,
-          'First Seen': entry.first_seen || 'Unknown',
-          'Reporter': entry.reporter || 'Anonymous',
-        },
-        tags: entry.tags || [],
-        score: entry.confidence_level || 75,
-        link: `https://threatfox.abuse.ch/ioc/${entry.id}`,
-      };
-    } catch (err) {
-      return { source: 'ThreatFox', error: err.message.includes('Failed to fetch') ? 'CORS blocked or network error' : err.message };
-    }
+    // ThreatFox API now requires authentication (changed policy)
+    return { 
+      source: 'ThreatFox', 
+      error: 'API now requires authentication - service temporarily unavailable',
+      link: 'https://threatfox.abuse.ch/'
+    };
   }
 
   async function queryURLhaus(ioc) {
-    try {
-      const formData = new URLSearchParams();
-      // Try as URL first, then host, then hash
-      let endpoint = 'url';
-      formData.append('url', ioc);
-
-      const res = await fetch(`https://urlhaus-api.abuse.ch/v1/${endpoint}/`, {
-        method: 'POST',
-        body: formData,
-        mode: 'cors',
-      });
-      if (!res.ok) return { source: 'URLhaus', error: `HTTP ${res.status}` };
-      const d = await res.json();
-      if (d.query_status !== 'ok' && d.query_status !== 'no_results') {
-        // Try as host
-        const formData2 = new URLSearchParams();
-        formData2.append('host', ioc);
-        const res2 = await fetch('https://urlhaus-api.abuse.ch/v1/host/', { method: 'POST', body: formData2, mode: 'cors' });
-        if (!res2.ok) return { source: 'URLhaus', error: `HTTP ${res2.status}` };
-        const d2 = await res2.json();
-        if (!d2.urls?.length) return { source: 'URLhaus', status: 'clean', data: { 'Result': 'Not found in URLhaus' }, score: 0, link: 'https://urlhaus.abuse.ch/' };
-        const u = d2.urls[0];
-        return {
-          source: 'URLhaus',
-          status: 'malicious',
-          data: { 'URLs Found': d2.urls_online || 0, 'Threat': u.threat || 'N/A', 'Status': u.url_status || 'Unknown', 'First Added': d2.firstseen || 'Unknown' },
-          tags: u.tags || [],
-          score: 80,
-          link: `https://urlhaus.abuse.ch/host/${ioc}/`,
-        };
-      }
-      if (d.query_status === 'no_results' || !d.id) return { source: 'URLhaus', status: 'clean', data: { 'Result': 'Not found in URLhaus' }, score: 0, link: 'https://urlhaus.abuse.ch/' };
-      return {
-        source: 'URLhaus',
-        status: d.threat ? 'malicious' : 'clean',
-        data: { 'Threat': d.threat || 'N/A', 'Status': d.url_status || 'Unknown', 'Date Added': d.date_added || 'Unknown', 'Reporter': d.reporter || 'Anonymous' },
-        tags: d.tags || [],
-        score: d.threat ? 85 : 0,
-        link: d.urlhaus_reference || 'https://urlhaus.abuse.ch/',
-      };
-    } catch (err) {
-      return { source: 'URLhaus', error: err.message.includes('Failed to fetch') ? 'CORS blocked or network error' : err.message };
-    }
+    // URLhaus API now requires authentication (changed policy)
+    return { 
+      source: 'URLhaus', 
+      error: 'API now requires authentication - service temporarily unavailable',
+      link: 'https://urlhaus.abuse.ch/'
+    };
   }
 
   async function queryIPQS(ip) {

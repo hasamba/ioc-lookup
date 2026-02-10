@@ -21,12 +21,12 @@ Built for DFIR and Threat Intelligence analysts who need fast, multi-source IoC 
 ## Threat Intelligence Sources
 
 ### Free (no API key required)
-| Source | Coverage |
-|--------|----------|
-| **Shodan InternetDB** | Open ports, vulnerabilities, tags |
-| **ip-api.com** | Geolocation, ISP, proxy/VPN detection |
-| **ThreatFox** (abuse.ch) | Malware-associated IoCs |
-| **URLhaus** (abuse.ch) | Malicious URLs and domains |
+| Source | Coverage | Status |
+|--------|----------|--------|
+| **Shodan InternetDB** | Open ports, vulnerabilities, tags | ✅ Active |
+| **ipapi.co** | Geolocation, ISP, ASN | ✅ Active |
+| ~~**ThreatFox** (abuse.ch)~~ | ~~Malware-associated IoCs~~ | ⚠️ Now requires auth |
+| ~~**URLhaus** (abuse.ch)~~ | ~~Malicious URLs~~ | ⚠️ Now requires auth |
 
 ### With free API key
 | Source | Coverage | Get Key |
