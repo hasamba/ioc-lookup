@@ -103,6 +103,47 @@
     }
   }
 
+  async function queryGreyNoise(ip) {
+    try {
+      // GreyNoise Community API - free, no key required
+      const res = await fetch(`https://api.greynoise.io/v3/community/${ip}`, {
+        headers: { 'User-Agent': 'IoC-Quick-Lookup/1.0' },
+        mode: 'cors',
+      });
+      if (!res.ok) {
+        if (res.status === 404) return { source: 'GreyNoise', status: 'clean', data: { 'Result': 'Not found in GreyNoise' }, score: 0, link: 'https://www.greynoise.io/' };
+        return { source: 'GreyNoise', error: `HTTP ${res.status}` };
+      }
+      const d = await res.json();
+      const isNoise = d.noise === true;
+      const isRiot = d.riot === true;
+      const isMalicious = d.classification === 'malicious';
+      
+      let status = 'clean';
+      let score = 0;
+      if (isMalicious) { status = 'malicious'; score = 70; }
+      else if (isNoise && !isRiot) { status = 'suspicious'; score = 40; }
+      else if (isRiot) { status = 'clean'; score = 0; } // RIOT = known benign service
+      
+      return {
+        source: 'GreyNoise',
+        status,
+        data: {
+          'Classification': d.classification || 'Unknown',
+          'Noise': isNoise ? '⚠️ Yes (mass-scanner)' : 'No',
+          'RIOT': isRiot ? '✅ Known benign service' : 'No',
+          'Last Seen': d.last_seen || 'Unknown',
+          'Name': d.name || 'N/A',
+        },
+        tags: d.name ? [d.name] : [],
+        score,
+        link: `https://www.greynoise.io/viz/ip/${ip}`,
+      };
+    } catch (err) {
+      return { source: 'GreyNoise', error: err.message.includes('Failed to fetch') ? 'Network error' : err.message };
+    }
+  }
+
   async function queryAbuseIPDB(ip) {
     const key = getKey('AbuseIPDB');
     if (!key) return { source: 'AbuseIPDB', nokey: true };
@@ -236,6 +277,7 @@
     if (isIP(type)) {
       queries.push(queryShodanInternetDB(ioc));
       queries.push(queryIPAPI(ioc));
+      queries.push(queryGreyNoise(ioc));
       queries.push(queryAbuseIPDB(ioc));
       queries.push(queryVirusTotal(ioc, type));
       queries.push(queryThreatFox(ioc, type));

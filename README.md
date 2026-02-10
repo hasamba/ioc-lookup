@@ -25,6 +25,7 @@ Built for DFIR and Threat Intelligence analysts who need fast, multi-source IoC 
 |--------|----------|--------|
 | **Shodan InternetDB** | Open ports, vulnerabilities, tags | ✅ Active |
 | **ipapi.co** | Geolocation, ISP, ASN | ✅ Active |
+| **GreyNoise Community** | Mass-scanning detection, RIOT (known services) | ✅ Active |
 | ~~**ThreatFox** (abuse.ch)~~ | ~~Malware-associated IoCs~~ | ⚠️ Now requires auth |
 | ~~**URLhaus** (abuse.ch)~~ | ~~Malicious URLs~~ | ⚠️ Now requires auth |
 
