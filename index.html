@@ -49,21 +49,23 @@
             </div>
             <div class="modal-body">
                 <p class="modal-hint">Keys are stored locally in your browser. Never transmitted to third parties.</p>
-                <div class="key-field">
-                    <label>AbuseIPDB API Key</label>
-                    <input type="password" id="keyAbuseIPDB" placeholder="Get free key at abuseipdb.com">
-                    <a href="https://www.abuseipdb.com/account/api" target="_blank" rel="noopener">Get Key →</a>
-                </div>
-                <div class="key-field">
-                    <label>VirusTotal API Key</label>
-                    <input type="password" id="keyVirusTotal" placeholder="Get free key at virustotal.com">
-                    <a href="https://www.virustotal.com/gui/my-apikey" target="_blank" rel="noopener">Get Key →</a>
-                </div>
-                <div class="key-field">
-                    <label>IPQualityScore API Key</label>
-                    <input type="password" id="keyIPQS" placeholder="Get free key at ipqualityscore.com">
-                    <a href="https://www.ipqualityscore.com/create-account" target="_blank" rel="noopener">Get Key →</a>
-                </div>
+                <form id="apiKeyForm">
+                    <div class="key-field">
+                        <label>AbuseIPDB API Key</label>
+                        <input type="password" id="keyAbuseIPDB" placeholder="Get free key at abuseipdb.com" autocomplete="off">
+                        <a href="https://www.abuseipdb.com/account/api" target="_blank" rel="noopener">Get Key →</a>
+                    </div>
+                    <div class="key-field">
+                        <label>VirusTotal API Key</label>
+                        <input type="password" id="keyVirusTotal" placeholder="Get free key at virustotal.com" autocomplete="off">
+                        <a href="https://www.virustotal.com/gui/my-apikey" target="_blank" rel="noopener">Get Key →</a>
+                    </div>
+                    <div class="key-field">
+                        <label>IPQualityScore API Key</label>
+                        <input type="password" id="keyIPQS" placeholder="Get free key at ipqualityscore.com" autocomplete="off">
+                        <a href="https://www.ipqualityscore.com/create-account" target="_blank" rel="noopener">Get Key →</a>
+                    </div>
+                </form>
                 <div class="divider"></div>
                 <p class="modal-hint">These sources work without API keys:</p>
                 <ul class="free-sources">
