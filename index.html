@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoC Quick Lookup — Threat Intelligence</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <h1>🔍 IoC Quick Lookup</h1>
+            <span class="subtitle">Threat Intelligence • Multi-Source Reputation</span>
+        </div>
+        <button id="settingsBtn" class="icon-btn" title="API Key Settings">⚙️</button>
+    </header>
+
+    <main>
+        <div class="search-container">
+            <div class="input-wrapper">
+                <input type="text" id="iocInput" placeholder="Enter IP, domain, URL, or file hash..." autocomplete="off" spellcheck="false">
+                <span id="iocBadge" class="ioc-badge hidden"></span>
+            </div>
+            <button id="searchBtn">Lookup</button>
+        </div>
+        <p class="hint">Supports IPv4/IPv6, domains, URLs, MD5, SHA-1, SHA-256</p>
+
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <span>Querying threat intelligence sources...</span>
+        </div>
+
+        <div id="summary" class="summary-card hidden"></div>
+        <div id="results" class="results-grid"></div>
+
+        <div id="historySection" class="history-section hidden">
+            <h3>📋 Lookup History <button id="clearHistory" class="text-btn">Clear</button></h3>
+            <div id="historyList"></div>
+        </div>
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚙️ API Key Settings</h2>
+                <button class="close-btn" id="closeSettings">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-hint">Keys are stored locally in your browser. Never transmitted to third parties.</p>
+                <div class="key-field">
+                    <label>AbuseIPDB API Key</label>
+                    <input type="password" id="keyAbuseIPDB" placeholder="Get free key at abuseipdb.com">
+                    <a href="https://www.abuseipdb.com/account/api" target="_blank" rel="noopener">Get Key →</a>
+                </div>
+                <div class="key-field">
+                    <label>VirusTotal API Key</label>
+                    <input type="password" id="keyVirusTotal" placeholder="Get free key at virustotal.com">
+                    <a href="https://www.virustotal.com/gui/my-apikey" target="_blank" rel="noopener">Get Key →</a>
+                </div>
+                <div class="key-field">
+                    <label>IPQualityScore API Key</label>
+                    <input type="password" id="keyIPQS" placeholder="Get free key at ipqualityscore.com">
+                    <a href="https://www.ipqualityscore.com/create-account" target="_blank" rel="noopener">Get Key →</a>
+                </div>
+                <div class="divider"></div>
+                <p class="modal-hint">These sources work without API keys:</p>
+                <ul class="free-sources">
+                    <li>✅ Shodan InternetDB — Open ports, vulns, tags</li>
+                    <li>✅ ThreatFox (abuse.ch) — Malware IoC database</li>
+                    <li>✅ URLhaus (abuse.ch) — Malicious URLs</li>
+                    <li>✅ ip-api.com — IP Geolocation</li>
+                </ul>
+                <div class="modal-actions">
+                    <button id="saveKeys" class="btn-primary">Save Keys</button>
+                    <button id="clearKeys" class="btn-danger">Clear All Keys</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <span>IoC Quick Lookup v1.0 — <a href="https://github.com/TheClimbingCat/ioc-lookup" target="_blank">GitHub</a></span>
+        <span>All queries are client-side. Your data stays in your browser.</span>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
